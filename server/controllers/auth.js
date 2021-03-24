@@ -2,7 +2,12 @@ const User = require("../models/Users");
 const express = require('express');
 const ErrorResponse = require('../utils/errorResponse');
 const sendEmail = require('../utils/sendEmail');
+const password = require('secure-random-password');
+
 const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library')
+const client = new OAuth2Client("198122039548-gp2a9kco71cun5re25frn67958jqlk2o.apps.googleusercontent.com")
+
 const sendToken = (user, statusCode, res) =>{
     const token = user.getSignedToken();
     res.status(statusCode).json({
@@ -11,13 +16,21 @@ const sendToken = (user, statusCode, res) =>{
     })
 }
 
-
 exports.register = async (req, res, next) => {
-    const { username, password, email } = req.body;
+    let isCustomAuth;
+    const { username, password, email, customAuth } = req.body;
+    isCustomAuth = customAuth;
     try {
-        const user = await User.create({
-            username, password, email
-        });
+        let user;
+        if (isCustomAuth) {
+            user = await User.create({
+                username, password, email
+            });
+        } else {
+            user = await User.create({
+                username, email
+            });
+        }
 
         sendToken(user, 201, res);
 
@@ -125,4 +138,36 @@ exports.resetpassword = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
+}
+
+exports.googleSignIn = async (req, res, next) => {
+    const { token, profileObj } = req.body;
+    // verify the token recieved - verifies if the token given by client and the token saved is the same 
+    client
+        .verifyIdToken({ idToken: token, audience: "198122039548-gp2a9kco71cun5re25frn67958jqlk2o.apps.googleusercontent.com"})
+        .then(response => {
+            const { email_verified, name, email } = response.payload;
+            if (email_verified) {
+                User.findOne({ email }).exec(async (err, user) => {
+                   if (err) {
+                        return next(new ErrorResponse("Something went wrong ..", 400))
+                   } else {
+                       if (user) {
+                            sendToken(user, 201, res);
+                       } else {
+                            try {
+                                let newPassword = password.randomPassword({ length: 20, characters: [password.lower, password.upper, password.digits] });
+                                let user = await User.create({ username: name, email, password: newPassword });
+                                sendToken(user, 201, res);
+                        
+                            } catch (error) {
+                                next(error);
+                            }
+                           
+
+                       }
+                   }
+                })
+            }
+        });
 }

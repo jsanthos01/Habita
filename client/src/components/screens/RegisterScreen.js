@@ -1,24 +1,30 @@
 import React, { useState } from 'react';
 import axios from "axios";
-// import { Link as RouterLink } from "react-router-dom";
+import { useDispatch } from 'react-redux';
+import { useHistory } from 'react-router-dom';
+import { GoogleLogin } from "react-google-login";
 import {
     Avatar,
     Button,
     CssBaseline,
     TextField,
-    FormControlLabel,
-    Checkbox,
     Paper,
-    Box,
     Grid,
     Link,
-    Typography
+    Typography,
+    InputAdornment, 
+    IconButton,
+    makeStyles,
+    Snackbar
 } from '@material-ui/core';
-import registerImg from "./images/register.png"
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
-import { makeStyles } from '@material-ui/core/styles';
-import Snackbar from '@material-ui/core/Snackbar';
+import Visibility from '@material-ui/icons/Visibility';
+import VisibilityOff from '@material-ui/icons/VisibilityOff';
 import Alert from '@material-ui/lab/Alert';
+import gmail from "./images/gmail.png"
+import { AUTH, LOGOUT } from "../../constants/actionTypes";
+import { register } from "../../actions/auth";
+import Divider from "./CustomDivider";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -26,7 +32,6 @@ const useStyles = makeStyles((theme) => ({
   },
   image: {
     backgroundImage: `url(https://source.unsplash.com/WI30grRfBnE/900x900)`,
-    // backgroundImage: `url(${registerImg})`,
     backgroundRepeat: 'no-repeat',
     backgroundColor:
       theme.palette.type === 'light' ? theme.palette.grey[50] : theme.palette.grey[900],
@@ -51,7 +56,7 @@ const useStyles = makeStyles((theme) => ({
     fontWeight: "900px"
   },
   form: {
-    width: '100%', // Fix IE 11 issue.
+    width: '100%', 
     marginTop: theme.spacing(1),
   },
   submit: {
@@ -59,30 +64,58 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: "#FA5D63",
     color: "white",
     textTransform: 'capitalize'
-
   },
+  button : {
+    margin: theme.spacing(3, 0, 2),
+    backgroundColor: "white",
+    textTransform: 'capitalize'
+  }
 }));
 
-const RegisterScreen = ({ history }) => {
+const initialState = { username: "", email: "", password: ""};
+
+const RegisterScreen = () => {
   const classes = useStyles();
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
+  const history = useHistory();
+  const [formData, setFormData] = useState(initialState);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+
+  // visibility toggle of password field
+  const [showPassword, setShowPassword] = useState(false);
+  const handleShowPassword = () => setShowPassword(!showPassword);
+
+  // snackbar error message handling
   const [state, setState] = React.useState({
     open: true,
     vertical: 'top',
     horizontal: 'center',
   });
-
+ 
   const { vertical, horizontal, open } = state;
   const handleClose = () => {
     setState({ ...state, open: false });
   };
 
-  const registerHandler = async (e) => {
+
+
+  // Signing up with email
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // check if password and confirm password is valid
+    if (formData.password !== confirmPassword) {
+      setFormData({...formData, password: ""});
+      setTimeout(() => {
+        setError("");
+      }, 5000);
+      return setError("Passwords do not match");
+    }
 
     const config = {
       header: {
@@ -90,28 +123,19 @@ const RegisterScreen = ({ history }) => {
       },
     };
 
-    if (password !== confirmPassword) {
-      setPassword("");
-      setConfirmPassword("");
-      setTimeout(() => {
-        setError("");
-      }, 5000);
-      return setError("Passwords do not match");
-    }
-
     try {
       const { data } = await axios.post(
         "/api/auth/register",
         {
-          username,
-          email,
-          password,
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+          customAuth: true
         },
         config
       );
 
       localStorage.setItem("authToken", data.token);
-
       history.push("/dashboard");
     } catch (error) {
       setError(error.response.data.error);
@@ -121,6 +145,25 @@ const RegisterScreen = ({ history }) => {
     }
   };
 
+
+  // Signing up with google oauth
+  const googleSuccess = async (res) => {
+    const result = res?.profileObj;
+    const token = res?.tokenId;
+    dispatch({ type: AUTH , data: { result, token } });
+
+    const { data } = await axios.post(
+      "/api/auth/googleSignIn",
+      {
+        token,
+        result
+      }
+    );
+
+    history.push("/dashboard");
+  }
+
+  const googleFailure = () => setError('Google Sign In was unsuccessful. Try again later')
 
   return (
     <Grid container component="main" className={classes.root}>
@@ -149,10 +192,40 @@ const RegisterScreen = ({ history }) => {
               Create an Account !
             </Typography>
           </div>
-          <form className={classes.form}  onSubmit={registerHandler}>
+          <GoogleLogin 
+            clientId="198122039548-gp2a9kco71cun5re25frn67958jqlk2o.apps.googleusercontent.com"
+            render={(renderProps) => (
+              <Button
+                variant="contained"
+                fullWidth            
+                className={classes.button}
+                onClick={renderProps.onClick}
+                disabled={renderProps.disabled}
+                startIcon={
+                  <Avatar 
+                    src={gmail} 
+                  />
+                }
+              >
+                Sign up with Google
+              </Button>
+            )}
+
+            onSuccess={googleSuccess}
+            onFailure={googleFailure}
+            cookiePolicy="single_host_origin"
+          />
+          <Divider 
+            style={{
+              margin: "16px 0",
+              fontSize: "13px"
+            }} 
+            spacing={3}
+          >or Sign in with Email</Divider>
+          <form className={classes.form}  onSubmit={handleSubmit}>
             <TextField
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={formData.username}
+              onChange={handleChange}
               variant="outlined"
               margin="normal"
               required
@@ -165,8 +238,8 @@ const RegisterScreen = ({ history }) => {
               InputProps={{ inputProps: { tabIndex: 1 } }}
             />
             <TextField
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={formData.email}
+              onChange={handleChange}
               variant="outlined"
               margin="normal"
               required
@@ -179,8 +252,8 @@ const RegisterScreen = ({ history }) => {
               InputProps={{ inputProps: { tabIndex: 2 } }}
             />
             <TextField
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formData.password}
+              onChange={handleChange}
               variant="outlined"
               margin="normal"
               required
@@ -201,10 +274,18 @@ const RegisterScreen = ({ history }) => {
               fullWidth
               name="confirmpassword"
               label="Confirm Password"
-              type="confirmpassword"
-              id="confirmpassword"
+              type={showPassword ? "confirmpassword" : "password"}
               autoComplete="confirmpassword"
-              InputProps={{ inputProps: { tabIndex: 4 } }}
+              InputProps={{
+                inputProps: { tabIndex: 4 },
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={handleShowPassword}>
+                      {showPassword ? <Visibility /> : <VisibilityOff />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
             />
             
             <Button
@@ -212,6 +293,7 @@ const RegisterScreen = ({ history }) => {
               fullWidth
               variant="contained"
               className={classes.submit}
+              tabIndex={5}
             >
               Sign In
             </Button>

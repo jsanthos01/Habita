@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useHistory } from 'react-router-dom';
 import clsx from 'clsx';
+import { useDispatch } from 'react-redux';
+
 import PropTypes from 'prop-types';
 import {
   AppBar,
@@ -21,6 +23,7 @@ import {
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import MenuIcon from '@material-ui/icons/Menu';
 import logo from '../images/logo.png';
+import * as actionType from '../../../constants/actionTypes';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -97,6 +100,15 @@ const TopBar = ({ className, onMobileNavOpen, ...rest }) => {
     }
   }
 
+  const dispatch = useDispatch();
+  const history = useHistory();
+
+  const logout = (e) => {
+    handleMenu(e, "close");
+    dispatch({type: actionType.LOGOUT});
+    history.push("/login");
+  }
+
   return (
     <AppBar className={classes.root} elevation={0} {...rest}>
       <Toolbar  >
@@ -155,7 +167,7 @@ const TopBar = ({ className, onMobileNavOpen, ...rest }) => {
                 onClose={(e) => handleMenu(e, "close")}
               >
                 <MenuItem onClick={(e) => handleMenu(e, "close")}>Profile</MenuItem>
-                <MenuItem onClick={(e) => handleMenu(e, "close")}>Logout</MenuItem>
+                <MenuItem onClick={(e) => logout(e)}>Logout</MenuItem>
               </Menu>
                 {/* <Typography className={classes.typography}>The content of the Popover.</Typography> */}
               </Popover>

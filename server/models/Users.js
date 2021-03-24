@@ -53,7 +53,7 @@ UserSchema.methods.matchPasswords = async function(password) {
 // generating token
 UserSchema.methods.getSignedToken = function() {
     return jwt.sign(
-        { id: this._id },
+        { id: this._id, email: this._email },
         process.env.JWT_SECRET,
         { expiresIn: process.env.JWT_EXPIRE}
     )
@@ -70,5 +70,7 @@ UserSchema.methods.getResetPasswordToken = function() {
     this.resetPasswordExprire = Date.now() + 10 * (60 *1000);
     return resetToken;
 }
+
+
 const User = mongoose.model('User', UserSchema);
 module.exports = User;

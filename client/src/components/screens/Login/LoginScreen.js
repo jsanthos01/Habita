@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useReducer } from 'react';
 import axios from "axios";
 import { useHistory } from "react-router-dom";
+import { useDispatch } from 'react-redux';
 import { GoogleLogin } from "react-google-login";
 import {
     Avatar,
@@ -16,9 +17,9 @@ import {
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import { makeStyles } from '@material-ui/core/styles';
 import Alert from '@material-ui/lab/Alert';
-import Divider from "./CustomDivider";
-import gmail from "./images/gmail.png"
-import { AUTH, LOGOUT } from "../../constants/actionTypes";
+import Divider from "../CustomDivider";
+import gmail from "../images/gmail.png"
+import { AUTH, LOGOUT } from "../../../constants/actionTypes";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -78,14 +79,13 @@ const LoginScreen = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const history = useHistory();
+  const dispatch = useDispatch();
 
   const [state, setState] = React.useState({
     open: true,
     vertical: 'top',
     horizontal: 'center',
   });
-
-  
 
   const { vertical, horizontal, open } = state;
   const handleClose = () => {
@@ -94,6 +94,7 @@ const LoginScreen = () => {
 
   useEffect(() => {
     if (localStorage.getItem("authToken")) {
+      console.log()
       history.push("/dashboard");
     }
   }, [history]);
@@ -126,35 +127,24 @@ const LoginScreen = () => {
     }
   };
 
-  const [authData, dispatch] = useReducer((state, action) => {
-    switch (action.type) {
-      // do something with the action
-      case AUTH: 
-        console.log(action?.data);
-        localStorage.setItem('authToken', JSON.stringify(action?.data.token ));
-        return { ...state, authData: action?.data };
-        break;
-      default:
-        return state;
-    }
-
-  }, []);
+  // Signing up with google oauth
   const googleSuccess = async (res) => {
     const result = res?.profileObj;
     const token = res?.tokenId;
+    dispatch({ type: AUTH , data: { result, token } });
 
-    try { 
-      dispatch({ type: AUTH , data: { result, token } })
-    } catch(error) {
-      console.log(error)
-    }
-    console.log(res)
+    const { data } = await axios.post(
+      "/api/auth/googleSignIn",
+      {
+        token,
+        result
+      }
+    );
+
+    history.push("/dashboard");
   }
 
-  const googleFailure = (error) => {
-    console.log(error)
-    console.log("Google Sign In was unsuccessful. Try Again Later!");
-  }
+  const googleFailure = () => setError('Google Sign In was unsuccessful. Try again later')
 
   return (
     <Grid container component="main" className={classes.root}>
