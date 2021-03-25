@@ -11,3 +11,4 @@ API.interceptors.request.use((req) => {
 
 export const register = (formData) => API.post("/api/auth/register", formData);
 export const login = (formData) => API.get("/api/auth/login", formData);
+export const user = () => API.get("/api/private/user");

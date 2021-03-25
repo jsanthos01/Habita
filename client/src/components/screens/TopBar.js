@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { Link as RouterLink, useHistory } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link as RouterLink, useHistory, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import { useDispatch } from 'react-redux';
-
 import PropTypes from 'prop-types';
 import {
   AppBar,
@@ -20,10 +19,9 @@ import {
   Typography,
   Hidden
 } from '@material-ui/core';
-import AccountCircle from '@material-ui/icons/AccountCircle';
-import MenuIcon from '@material-ui/icons/Menu';
-import logo from '../images/logo.png';
-import * as actionType from '../../../constants/actionTypes';
+import logo from './images/logo.png';
+import * as actionType from '../../constants/actionTypes';
+import decode from "jwt-decode";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -73,10 +71,14 @@ const useStyles = makeStyles((theme) => ({
 
 const TopBar = ({ className, onMobileNavOpen, ...rest }) => {
   const classes = useStyles();
+  const dispatch = useDispatch();
+  const history = useHistory();
+  const location = useLocation();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const id = open ? 'simple-popover' : undefined;
   const AppbarButtons = ["features", "pricing", "contact"];
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem("profile")));
 
   const handleMenu = (event, action) => {
     switch (action) {
@@ -92,22 +94,20 @@ const TopBar = ({ className, onMobileNavOpen, ...rest }) => {
     }
   };
 
-  // const user = null;
-  const user = {
-    result: {
-      name: "Jeanette", 
-      imageUrl: "https://i.pinimg.com/originals/82/ab/35/82ab3533ee71daf256f23c1ccf20ad6f.jpg",
-    }
-  }
-
-  const dispatch = useDispatch();
-  const history = useHistory();
-
   const logout = (e) => {
     handleMenu(e, "close");
+    setUser(null);
     dispatch({type: actionType.LOGOUT});
     history.push("/login");
   }
+
+  useEffect(()=> {
+    const token = user?.token;
+    if (token) {
+      const decodedToken = decode(token);
+      if (decodedToken.exp *1000 < new Date().getTime()) logout();
+    }
+  }, [location]);
 
   return (
     <AppBar className={classes.root} elevation={0} {...rest}>
@@ -134,7 +134,7 @@ const TopBar = ({ className, onMobileNavOpen, ...rest }) => {
                   alt={user.result.name} 
                   src={user.result.imageUrl}  
                 >
-                  {user.result.name.charAt(0)}
+                  {/* {user.result.name.charAt(0)} */}
                 </Avatar>
               </IconButton>
               <Popover
@@ -197,7 +197,8 @@ const TopBar = ({ className, onMobileNavOpen, ...rest }) => {
               </Button>
             </Hidden>
 
-            )}
+            )
+          }
           
       </Toolbar>
     </AppBar>

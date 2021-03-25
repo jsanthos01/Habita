@@ -13,9 +13,9 @@ import {
     Link,
     Typography,
     Snackbar,
+    makeStyles
 } from '@material-ui/core';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
-import { makeStyles } from '@material-ui/core/styles';
 import Alert from '@material-ui/lab/Alert';
 import Divider from "../CustomDivider";
 import gmail from "../images/gmail.png"
@@ -115,7 +115,12 @@ const LoginScreen = () => {
         config
       );
       
-      console.log(data.token);
+      localStorage.setItem("profile", JSON.stringify({
+        result: {
+          email: email,
+          picture: "https://getdrawings.com/free-icon-bw/anonymous-avatar-icon-19.png"
+        }
+      }));
       localStorage.setItem("authToken", data.token);
 
       history.push("/dashboard");

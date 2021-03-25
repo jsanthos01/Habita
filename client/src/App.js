@@ -1,13 +1,14 @@
 import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import PrivateRoute from "./components/routing/PrivateRoute";
-import Dashboard from "./components/screens/DashboardLayout/Dashboard";
+// import Dashboard from "./components/screens/DashboardLayout/Dashboard";
+import Dashboard from "./components/screens/DashboardLayout/NewDashboard";
 // import PrivateScreen from "./components/screens/PrivateScreen";
 import HomeScreen from "./components/screens/HomeScreen/HomeScreen";
 import LoginScreen from "./components/screens/Login/LoginScreen";
 import RegisterScreen from "./components/screens/RegisterScreen";
 import ForgotPasswordScreen from "./components/screens/Login/ForgetPasswordScreen";
 import ResetPasswordScreen from "./components/screens/Login/ResetPasswordScreen";
-import TopBar from "./components/screens/DashboardLayout/TopBar";
+import TopBar from "./components/screens/TopBar";
 
 const App = () => {
   return (

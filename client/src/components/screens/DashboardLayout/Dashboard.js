@@ -7,7 +7,7 @@ import {
   makeStyles,
   Snackbar
 } from '@material-ui/core';
-import TopBar from './TopBar';
+import TopBar from '../TopBar';
 import NavBar from './Navbar';
 
 const useStyles = makeStyles((theme) => ({

@@ -98,8 +98,6 @@ const RegisterScreen = () => {
     setState({ ...state, open: false });
   };
 
-
-
   // Signing up with email
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -136,6 +134,13 @@ const RegisterScreen = () => {
       );
 
       localStorage.setItem("authToken", data.token);
+      localStorage.setItem("profile", JSON.stringify({
+        result: {
+          name: formData.username,
+          email: formData.email,
+          picture: "https://getdrawings.com/free-icon-bw/anonymous-avatar-icon-19.png"
+        }
+      }));
       history.push("/dashboard");
     } catch (error) {
       setError(error.response.data.error);
@@ -144,7 +149,6 @@ const RegisterScreen = () => {
       }, 5000);
     }
   };
-
 
   // Signing up with google oauth
   const googleSuccess = async (res) => {
