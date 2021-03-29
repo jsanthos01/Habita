@@ -17,13 +17,14 @@ import {
 } from '@material-ui/core';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Alert from '@material-ui/lab/Alert';
-import Divider from "../CustomDivider";
+import CustomDivider from "../CustomDivider";
+import TopBar from "../TopBar";
 import gmail from "../images/gmail.png"
 import { AUTH, LOGOUT } from "../../../constants/actionTypes";
 
 const useStyles = makeStyles((theme) => ({
   root: {
-    height: '100vh',
+    height: '70vh',
   },
   image: {
     backgroundImage: `url(https://source.unsplash.com/WI30grRfBnE/900x900)`,
@@ -103,10 +104,12 @@ const LoginScreen = () => {
     e.preventDefault();
 
     const config = {
-      header: {
+      headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("authToken")}`,            
       },
     };
+
 
     try {
       const { data } = await axios.post(
@@ -154,6 +157,7 @@ const LoginScreen = () => {
   return (
     <Grid container component="main" className={classes.root}>
       <CssBaseline />
+      <TopBar />
       <Grid item xs={false} sm={4} md={7} className={classes.image} />
       <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
         <div className={classes.paper}>
@@ -202,13 +206,13 @@ const LoginScreen = () => {
             onFailure={googleFailure}
             cookiePolicy="single_host_origin"
           />
-          <Divider 
+          <CustomDivider 
             style={{
               margin: "16px 0",
               fontSize: "13px"
             }} 
             spacing={3}
-          >or Sign in with Email</Divider>
+          >or Sign in with Email</CustomDivider>
           <form className={classes.form} onSubmit={loginHandler}>
             <TextField
               value={email}

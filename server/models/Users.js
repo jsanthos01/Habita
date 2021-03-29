@@ -2,6 +2,9 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const Habits = require('./Habits').schema;
+const Dailies = require("./Dailies").schema;
+const Todos = require("./Todos").schema;
 
 const UserSchema = new mongoose.Schema({
     username: {
@@ -18,13 +21,24 @@ const UserSchema = new mongoose.Schema({
             "Please provide a valid email"
         ]
     },
-
     password: {
         type: 'string',
         required: [true, "Please provide a password"],
         minLength: 6,
         select: false
     },
+    profileImg: {
+        type: String,
+        default: 'https://getdrawings.com/free-icon-bw/anonymous-avatar-icon-19.png'  
+    },
+
+    
+    habits: [{ 
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Habits'
+    }],
+    dailies: [ Dailies],
+    todos: [ Todos ],
 
     resetPasswordToken: String,
     resetPasswordExpired: Date

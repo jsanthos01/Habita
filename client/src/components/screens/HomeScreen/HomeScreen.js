@@ -1,15 +1,9 @@
 import React from "react";
-
 import { Grid, Fab, useScrollTrigger, Zoom } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
-
 import KeyboardArrowUpIcon from "@material-ui/icons/KeyboardArrowUp";
 import HeroBlock from "./HeroBlock";
-// import Features from "../Features/Features";
-// import Download from "../Download/Download";
-// import Questions from "../Questions/Questions";
-// import EmailForm from "../EmailForm/EmailForm";
-// import Footer from "../Footer/Footer";
+import TopBar from "../TopBar";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -25,6 +19,7 @@ const useStyles = makeStyles((theme) => ({
     fontWeight: "bold"
   }
 }));
+
 
 function ScrollTop(props) {
   const { children } = props;
@@ -58,25 +53,11 @@ const HomeScreen = (props) => {
 
   return (
     <React.Fragment>
+      <TopBar />
       <Grid className={classes.blockroot} container direction="column">
         <Grid item id="back-to-top-anchor">
           <HeroBlock />
         </Grid>
-        {/* <Grid item>
-          <Features />
-        </Grid> */}
-        {/* <Grid item>
-          <Download />
-        </Grid>
-        <Grid item>
-          <Questions />
-        </Grid>
-        <Grid item>
-          <EmailForm />
-        </Grid>
-        <Grid item>
-          <Footer />
-        </Grid> */}
         <ScrollTop {...props}>
           <Fab color="secondary" size="small" aria-label="scroll back to top">
             <KeyboardArrowUpIcon />

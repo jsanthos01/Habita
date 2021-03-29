@@ -11,6 +11,7 @@ connectDB();
 app.use(express.json());
 app.use( express.urlencoded({ extended: true }) );
 app.use('/api/auth', require('./server/routes/auth'));
+app.use('/api/user', require('./server/routes/user'));
 app.use('/api/private', require('./server/routes/private'));
 app.use(cors());
 

@@ -24,7 +24,7 @@ import Alert from '@material-ui/lab/Alert';
 import gmail from "./images/gmail.png"
 import { AUTH, LOGOUT } from "../../constants/actionTypes";
 import { register } from "../../actions/auth";
-import Divider from "./CustomDivider";
+import CustomDivider from "./CustomDivider";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -116,10 +116,12 @@ const RegisterScreen = () => {
     }
 
     const config = {
-      header: {
+      headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${localStorage.getItem("authToken")}`,            
       },
     };
+
 
     try {
       const { data } = await axios.post(
@@ -219,13 +221,13 @@ const RegisterScreen = () => {
             onFailure={googleFailure}
             cookiePolicy="single_host_origin"
           />
-          <Divider 
+          <CustomDivider 
             style={{
               margin: "16px 0",
               fontSize: "13px"
             }} 
             spacing={3}
-          >or Sign in with Email</Divider>
+          >or Sign in with Email</CustomDivider>
           <form className={classes.form}  onSubmit={handleSubmit}>
             <TextField
               value={formData.username}

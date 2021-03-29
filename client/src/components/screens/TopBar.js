@@ -20,18 +20,25 @@ import {
   Hidden
 } from '@material-ui/core';
 import logo from './images/logo.png';
-import * as actionType from '../../constants/actionTypes';
-import decode from "jwt-decode";
 
 const useStyles = makeStyles((theme) => ({
   root: {
     backgroundColor: "#fff",
-    color: "#000"
+    color: "#000",
+    textTransform: "capitalize",
+  },
+  menuButton: {
+      marginRight: 36,
+  },
+  menuButtonHidden: {
+      display: 'none',
   },
   toolbar: {
     zIndex: theme.zIndex.modal + 1,
   },
   loginButton: {
+    fontWeight: 800,
+    // textTransform: "capitalize",
     marginRight: 50,
     color: "white",
     backgroundColor: "#FA5757",
@@ -45,15 +52,16 @@ const useStyles = makeStyles((theme) => ({
     height: 60
   },
   navigationButton: {
-    fontWeight: "800px",
+    fontWeight: 800,
+    textTransform: "capitalize",
     marginRight: 20,
     "&:hover": {
       color: "#FA5757",
     },
   },
   logo: {
-    width: "50%",
-    height: "40%",
+    width: "40%",
+    height: "30%",
   },
   typography: {
     padding: theme.spacing(2),
@@ -75,131 +83,41 @@ const TopBar = ({ className, onMobileNavOpen, ...rest }) => {
   const history = useHistory();
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState(null);
-  const open = Boolean(anchorEl);
-  const id = open ? 'simple-popover' : undefined;
   const AppbarButtons = ["features", "pricing", "contact"];
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("profile")));
 
-  const handleMenu = (event, action) => {
-    switch (action) {
-      case "open": 
-        setAnchorEl(event.currentTarget);
-        break;
-      case "close": 
-        setAnchorEl(null);
-        break;
-      default:
-        setAnchorEl(null);
-        break;
-    }
-  };
-
-  const logout = (e) => {
-    handleMenu(e, "close");
-    setUser(null);
-    dispatch({type: actionType.LOGOUT});
-    history.push("/login");
-  }
-
-  useEffect(()=> {
-    const token = user?.token;
-    if (token) {
-      const decodedToken = decode(token);
-      if (decodedToken.exp *1000 < new Date().getTime()) logout();
-    }
-  }, [location]);
 
   return (
-    <AppBar className={classes.root} elevation={0} {...rest}>
-      <Toolbar  >
-        {/* LOGO */}
+    <AppBar className={classes.root} elevation={1} {...rest}>
+      <Toolbar>
         <RouterLink to="/">
           <img className={classes.logo} src={logo} />
         </RouterLink>
 
         <Box flexGrow={1} />
-
-        {/* Side Bar - Profile Pic */}
-          { user ? (
-            <div className={classes.profile}>
-              <IconButton
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={(e) => handleMenu(e, "open")}
-                color="inherit"
-              >
-                <Avatar 
-                  color="inherit" 
-                  alt={user.result.name} 
-                  src={user.result.imageUrl}  
-                >
-                  {/* {user.result.name.charAt(0)} */}
-                </Avatar>
-              </IconButton>
-              <Popover
-                id={id}
-                open={open}
-                anchorEl={anchorEl}
-                onClose={(e) => handleMenu(e, "close")}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'center',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'center',
-                }}
-              >
-                <Menu
-                id="menu-appbar"
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'right',
-                }}
-                open={open}
-                onClose={(e) => handleMenu(e, "close")}
-              >
-                <MenuItem onClick={(e) => handleMenu(e, "close")}>Profile</MenuItem>
-                <MenuItem onClick={(e) => logout(e)}>Logout</MenuItem>
-              </Menu>
-                {/* <Typography className={classes.typography}>The content of the Popover.</Typography> */}
-              </Popover>
-              
-             </div>
-            
-            ) : (
-              <Hidden smDown>
-              {AppbarButtons.map((button, index) => {
-                return (
-                  <Button
-                    key={index}
-                    disableRipple
-                    className={classes.navigationButton}
-                  >
-                    {button}
-                  </Button>
-                );
-              })}
+        <Hidden smDown>
+          {AppbarButtons.map((button, index) => {
+            return (
               <Button
-                href="/login"
-                variant="outlined"
-                size="large"
-                className={classes.loginButton}
+                key={index}
+                disableRipple
+                className={classes.navigationButton}
               >
-                login
+                {button}
               </Button>
-            </Hidden>
-
-            )
-          }
-          
+            );
+          })}
+          {
+            !user ? <Button
+            href="/login"
+            variant="outlined"
+            size="large"
+            className={classes.loginButton}
+          >
+            login
+          </Button>
+          : ""}
+        </Hidden>   
       </Toolbar>
     </AppBar>
   )

@@ -14,7 +14,7 @@ const App = () => {
   return (
     <Router>
       <div className="app">
-        <TopBar />
+        {/* <TopBar /> */}
         <Switch>
           {/* <PrivateRoute exact path="/" component={PrivateScreen} /> */}
           <PrivateRoute exact path="/dashboard" component={Dashboard} />

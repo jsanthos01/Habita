@@ -6,14 +6,15 @@ const client = new OAuth2Client("198122039548-gp2a9kco71cun5re25frn67958jqlk2o.a
 
 exports.protect = async (req, res, next) => {
   let token;
+  let isCustomAuth;
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith("Bearer")
   ) {
     token = req.headers.authorization.split(" ")[1];
   }
-
-  const isCustomAuth = token.length < 500;
+  
+  isCustomAuth = token.length < 500;
   if (!token) {
     return next(new ErrorResponse("Not authorized to access this route", 401));
   }
@@ -29,7 +30,6 @@ exports.protect = async (req, res, next) => {
       user = await User.findById(userID);
     } else {
       decoded = jwt.decode(token);
-      console.log( "decoded", decoded)
       if (decoded.email_verified) {
         user = User.findOne({ email: decoded.email })
       }
@@ -40,7 +40,6 @@ exports.protect = async (req, res, next) => {
     }
 
     req.user = user;
-
     next();
   } catch (err) {
     return next(new ErrorResponse("Not authorized to access this router", 401));

@@ -1,23 +1,22 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react';
+import axios from "axios";
 import {
     Button,
     TextField,
     Dialog,
     DialogContent,
-    DialogActions,
-    DialogContentText,
-    // DialogTitle,
     makeStyles,
     withStyles,
     Divider,
     IconButton,
-    Typography
+    Typography,
+    Snackbar,
+    createMuiTheme, 
+    ThemeProvider
 } from '@material-ui/core';
+import { Alert, Autocomplete } from '@material-ui/lab';
 import CloseIcon from '@material-ui/icons/Close';
 import MuiDialogTitle from '@material-ui/core/DialogTitle';
-import MuiDialogContent from '@material-ui/core/DialogContent';
-import MuiDialogActions from '@material-ui/core/DialogActions';
-import Autocomplete from '@material-ui/lab/Autocomplete';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import AddCircleIcon from '@material-ui/icons/AddCircle';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
@@ -29,15 +28,27 @@ const useStyles = makeStyles((theme) => ({
         height: "100%",   
         '& .MuiTextField-root': {
             margin: theme.spacing(2,0 ),
-            width: '50ch',
-        }
+            width: '50ch'
+          
+        },
+        '& .MuiAutocomplete-input': {
+            fontSize: 12
+        },
+        // '& .MuiInputBase-root': {
+        //     color: 'white',
+        // },
+
+        "& .MuiInputLabel-root": { 
+            color: 'white',
+        },
     },
     inputResize: {
         fontSize: 10
     },
     topGroup: {
-        backgroundColor: "rgba(0,184,255, 0.2)",
-        fontWeight: "bold"
+        backgroundColor: "#E24429",
+        fontWeight: 800,
+        color: "white"
     },
     orientation: {
         display: "flex",
@@ -53,7 +64,7 @@ const useStyles = makeStyles((theme) => ({
         display: "flex",
         alignItems: "center",
         flexDirection: "column",
-    }
+    },
   
 }));
 
@@ -66,11 +77,37 @@ const styles = (theme) => ({
       position: 'absolute',
       right: theme.spacing(1),
       top: theme.spacing(1),
-      color: theme.palette.grey[500],
+      color: "white",
     },
 });
 
-  
+const theme = createMuiTheme({
+    palette: {
+      primary: {
+        main: '#fff',
+      },
+    },
+    root: {
+        '& .MuiOutlinedInput-root': {
+            '& fieldset': {
+              borderColor: 'white',
+            },
+            '&:hover fieldset': {
+              borderColor: 'yellow',
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: 'green',
+            },
+        },
+        "& .MuiOutlinedInput-inputMultiline": {
+            color: "white",
+            borderColor: "#fff"
+        },
+        
+    }
+});
+
+ 
 const DialogTitle = withStyles(styles)((props) => {
     const { children, classes, onClose, ...other } = props;
     return (
@@ -83,37 +120,119 @@ const DialogTitle = withStyles(styles)((props) => {
         ) : null}
       </MuiDialogTitle>
     );
-  });
+});
 
   
 const CreateTask = (props) => {
     const { setOpenForm, openForm } = props;
     const classes = useStyles();
-    const [difficulty, setDifficulty] = useState();
-    const [tags, setTags] = useState();
-    const [timeframe, setTimeframe] = useState();
+    const [ data, setData] = useState({
+        title: "", 
+        notes: "",
+        difficulty: "Easy",
+        tags: "Work",
+        timeframe: "Weekly"
+    });
+
     const difficultyOptions = ["Trivial", "Easy", "Medium", "High"]
     const tagOptions = ["Work", "School", "Chores", "Health + Wellness"]
-    const timeframeOptions = ["Weekly", "Monthly", "Yearly"];
+    const timeframeOptions = ["Daily", "Weekly", "Monthly", "Yearly"];
     const [positiveState, setPositiveState] = useState({ on: false });
     const [negativeState, setNegativeState] = useState({ on: false });
+    const [error, setError] = useState("");
+    const [state, setState] = React.useState({
+        open: true,
+        vertical: 'top',
+        horizontal: 'center',
+    });
+ 
+    const { vertical, horizontal, open } = state;
+    const handleSnackbarClose = () => {
+        setState({ ...state, open: false });
+    };
 
     const handleClose = () => {
         setOpenForm({ action: "", state: false });
     }
+
+    const handleFieldChange = (e, field, value) => {
+        if (!value) {
+            value = e.target.value;
+        }
+        setData( { ...data, [field]: value } );
+    }
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!data.title) {
+            setTimeout(() => {
+            setError("");
+            }, 5000);
+            return setError("Please add a title!");
+        }
+
+        const config = {
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${localStorage.getItem("authToken")}`,            
+            },
+          };
+      
+          try {
+            await axios.post(
+              "/api/user/habit/create",
+              data,
+              config
+            );
+
+            setData({
+                title: "", 
+                notes: "",
+                difficulty: "Easy",
+                tags: "Work",
+                timeframe: "Weekly"
+            });
+      
+            setOpenForm({ action: "", state: false});
+          } catch (error) {
+            
+            setError(error.response.data.error);
+            setTimeout(() => {
+              setError("");
+            }, 5000);
+          }
+    }
+
     return (
         <Dialog maxWidth={448} open={openForm.state} aria-labelledby="form-dialog-title" className={classes.root}>
+             {
+                error &&
+                <Snackbar 
+                open={open}
+                anchorOrigin={{ vertical, horizontal }}
+                autoHideDuration={6000} 
+                key={vertical + horizontal}
+                onClose={handleSnackbarClose}
+                >
+                <Alert onClose={handleSnackbarClose}severity="error">{ error }</Alert>
+                </Snackbar>
+            }
             <div className={classes.topGroup}>
                 <DialogTitle id="customized-dialog-title" onClose={handleClose}>
                     Create {openForm.action}
                 </DialogTitle>
-                <DialogContent className={classes.orientation}>
+
+                <DialogContent className={classes.orientation}>     
+                    <ThemeProvider theme={theme}>
                     <TextField 
                         size="small" 
+                        value={data.title}
+                        onChange={(e) => handleFieldChange(e, "title")}
                         inputProps={{style: {fontSize: 12, marginTop: "10px"}}}
                         required 
-                        id="standard-required" 
+                        id="title"
                         label="Title" 
+                        variant="outlined"
                         placeholder="Add a title" 
                         InputLabelProps={{
                             shrink: true,
@@ -121,8 +240,10 @@ const CreateTask = (props) => {
                     />
                     <TextField
                         inputProps={{style: {fontSize: 12, marginTop: "10px"}}}
+                        value={data.notes}
+                        onChange={(e, value) => handleFieldChange(e,"notes", value)}
                         size="small" 
-                        id="outlined-multiline-static"
+                        id="notes"
                         label="Notes"
                         multiline
                         rows={3}
@@ -132,6 +253,7 @@ const CreateTask = (props) => {
                             shrink: true,
                         }}
                     />
+                    </ThemeProvider>                   
                 </DialogContent>
             </div>
             <Divider />
@@ -163,32 +285,37 @@ const CreateTask = (props) => {
                 <div className={classes.orientation}>
                     <Autocomplete
                         size="small" 
-                        id="combo-box-demo"
-                        options={difficultyOptions}
+                        inputProps={{style: {fontSize: 12, marginTop: "10px"}}}
+                        options={difficultyOptions.map(option => option)}
+                        value={data.difficulty}
                         getOptionLabel={(option) => option}
+                        getOptionSelected={(option, value) => option === value }
+                        onChange={(e, value) => handleFieldChange(e, "difficulty", value)}
                         style={{ width: 300 }}
-                        renderInput={(params) => <TextField {...params} label="Difficulty" variant="outlined" />}
+                        label="Difficulty"
+                        renderInput={(params) => <TextField {...params} id="difficulty" label="Difficulty" variant="outlined" />}
                     />
                     <Autocomplete
                         size="small" 
-                        id="combo-box-demo"
-                        options={tagOptions}
-                        getOptionLabel={(option) => option}
+                        inputProps={{style: {fontSize: 12, marginTop: "10px"}}}
+                        value={data.tags}
+                        onChange={(e, value) => handleFieldChange(e,"tags", value)}
+                        options={tagOptions.map(option => option)}                        
                         style={{ width: 300 }}
-                        renderInput={(params) => <TextField {...params} label="Tags" variant="outlined" />}
+                        renderInput={(params) => <TextField {...params} id="tags" label="Tags" variant="outlined" />}
                     />
                     <Autocomplete
                         size="small" 
-                        id="combo-box-demo"
-                        options={timeframeOptions}
-                        getOptionLabel={(option) => option}
+                        inputProps={{style: {fontSize: 12, marginTop: "10px"}}}
+                        value={data.timeframe}
+                        onChange={(e,value) => handleFieldChange(e,"timeframe", value)}
+                        options={timeframeOptions.map(option => option)}
                         style={{ width: 300 }}
-                        renderInput={(params) => <TextField {...params} label="Reset Streak" variant="outlined" />}
+                        renderInput={(params) => <TextField {...params} id="timeframe" label="Reset Streak" variant="outlined" />}
                     />
                 </div>
-                <Button>Create</Button>
-            </DialogContent>
-
+            </DialogContent>            
+            <Button type="submit" onClick={handleSubmit}>Create</Button>
         </Dialog>
     )
 }

@@ -1,14 +1,14 @@
 import React, { useState } from "react";
-import { Paper } from "@material-ui/core";
+import { Paper, IconButton } from "@material-ui/core";
 import DateFnsUtils from '@date-io/date-fns';
 import { MuiPickersUtilsProvider, Calendar } from "@material-ui/pickers";
 import moment from "moment";
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
-import green from '@material-ui/core/colors/green';
+import clsx from 'clsx';
 
 const theme = createMuiTheme({
   palette: {
-    primary: { light: green[300], main: green[500], dark: green[700] },
+    primary: { light: "rgba(0,184,255, 0.15)", main: "rgba(0,184,255, 0.3)", dark: "rgba(0,184,255, 0.5)" },
   },
 });
 
@@ -26,6 +26,41 @@ function MyCalendar() {
     setSelectedDate(date);
   };
 
+  // const renderWrappedWeekDay = (date, selectedDate, dayInCurrentMonth, props) => {
+  //   const classes = useStyles()
+
+  //   let dateClone = date.clone();
+  //   let selectedDateClone = selectedDate.clone();
+
+  //   const start = selectedDateClone.startOf("week").toDate();
+  //   const end = selectedDateClone.endOf("week").toDate();
+
+  //   const dayIsBetween = dateClone.isBetween(start, end, null, []);
+  //   const isFirstDay = dateClone.isSame(start, "day");
+  //   const isLastDay = dateClone.isSame(end, "day");
+
+  //   const wrapperClassName = clsx({
+  //     [classes.highlight]: dayIsBetween,
+  //     [classes.firstHighlight]: isFirstDay,
+  //     [classes.endHighlight]: isLastDay
+  //   });
+
+  //   const dayClassName = clsx(classes.day, {
+  //     [classes.nonCurrentMonthDay]: !dayInCurrentMonth,
+  //     [classes.highlightNonCurrentMonthDay]: !dayInCurrentMonth && dayIsBetween
+  //   });
+
+  //   return (
+  //     <div>
+  //       <div className={wrapperClassName}>
+  //         <IconButton className={dayClassName}>
+  //           <span>{dateClone.format("DD")}</span>
+  //         </IconButton>
+  //       </div>
+  //     </div>
+  //   );
+  // };
+
   return (
     <MuiThemeProvider theme={theme}>
       <MuiPickersUtilsProvider utils={DateFnsUtils} >
@@ -36,6 +71,7 @@ function MyCalendar() {
             value={selectedDate}
             date={selectedDate}
             onChange={handleDateChange}
+            // renderDay={renderWrappedWeekDay}
           />
         </Paper>
       </MuiPickersUtilsProvider>

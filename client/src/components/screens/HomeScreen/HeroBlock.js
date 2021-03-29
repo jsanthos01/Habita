@@ -46,7 +46,7 @@ const useStyles = makeStyles((theme) => ({
   },
   chromeButton: {
     textTransform: "none",
-    backgroundColor: "rgb(0, 184, 255)",
+    backgroundColor: "#5368DF",
     color: "white",
     "&:hover": {
       backgroundColor: "white",

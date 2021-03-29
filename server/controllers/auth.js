@@ -146,7 +146,7 @@ exports.googleSignIn = async (req, res, next) => {
     client
         .verifyIdToken({ idToken: token, audience: "198122039548-gp2a9kco71cun5re25frn67958jqlk2o.apps.googleusercontent.com"})
         .then(response => {
-            const { email_verified, name, email } = response.payload;
+            const { email_verified, name, email, picture } = response.payload;
             if (email_verified) {
                 User.findOne({ email }).exec(async (err, user) => {
                    if (err) {
@@ -157,7 +157,7 @@ exports.googleSignIn = async (req, res, next) => {
                        } else {
                             try {
                                 let newPassword = password.randomPassword({ length: 20, characters: [password.lower, password.upper, password.digits] });
-                                let user = await User.create({ username: name, email, password: newPassword });
+                                let user = await User.create({ username: name, email, password: newPassword, profileImg: picture });
                                 sendToken(user, 201, res);
                         
                             } catch (error) {

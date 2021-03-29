@@ -1,7 +1,7 @@
 import React from "react";
 import { Grid, Divider as MuiDivider, Typography } from "@material-ui/core";
 
-const Divider = ({ children, ...props }) => (
+const CustomDivider = ({ children, ...props }) => (
   <Grid container alignItems="center" spacing={3} {...props}>
     <Grid item xs>
       <MuiDivider />
@@ -17,4 +17,4 @@ const Divider = ({ children, ...props }) => (
   </Grid>
 );
 
-export default Divider;
+export default CustomDivider;

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
+import { Link as RouterLink, useHistory, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import { 
     makeStyles,
@@ -17,8 +18,14 @@ import {
     Grid,
     MuiThemeProvider,
     createMuiTheme,
-    Divider
+    Divider,
+    MenuItem,
+    Menu,
+    Popover,
+    Avatar
 } from "@material-ui/core";
+import * as actionType from '../../../constants/actionTypes';
+import { useDispatch } from 'react-redux';
 
 import MenuIcon from '@material-ui/icons/Menu';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
@@ -28,6 +35,7 @@ import MyCalendar from './MyCalendar';
 import SpeedDial from './SpeedDial';
 import { HabitLayout } from './components';
 import illustrationHero from "../images/hello.svg";
+import decode from "jwt-decode";
 
 const drawerWidth = 240;
 
@@ -144,37 +152,126 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Dashboard() {
   const classes = useStyles();
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = useState(true);
+  const dispatch = useDispatch();
+  const history = useHistory();
+  const location = useLocation();
+
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem("profile")));
+  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const popperOpen = Boolean(anchorEl);
+  const id = popperOpen ? 'simple-popover' : undefined;
+
+
   const handleDrawerOpen = () => {
     setOpen(true);
   };
   const handleDrawerClose = () => {
     setOpen(false);
   };
-  const fixedHeightPaper = clsx(classes.paper, classes.fixedHeight);
+
+  const handleMenu = (event, action) => {
+    switch (action) {
+      case "open": 
+        setAnchorEl(event.currentTarget);
+        break;
+      case "close": 
+        setAnchorEl(null);
+        break;
+      default:
+        setAnchorEl(null);
+        break;
+    }
+  };
+
+  const logout = (e) => {
+    handleMenu(e, "close");
+    setUser(null);
+    dispatch({type: actionType.LOGOUT});
+    history.push("/login");
+  }
+
+  useEffect(()=> {
+    const token = user?.token;
+    if (token) {
+      const decodedToken = decode(token);
+      if (decodedToken.exp *1000 < new Date().getTime()) logout();
+    }
+  }, [location]);
 
   return (
     <div className={classes.root}>
         <CssBaseline />
         <AppBar position="absolute" className={clsx(classes.appBar, open && classes.appBarShift)}>
             <Toolbar className={classes.toolbar}>
-            <IconButton
-                edge="start"
-                color="inherit"
-                aria-label="open drawer"
-                onClick={handleDrawerOpen}
-                className={clsx(classes.menuButton, open && classes.menuButtonHidden)}
-            >
-                <MenuIcon />
-            </IconButton>
-            <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
-                Dashboard
-            </Typography>
-            <IconButton color="inherit">
-                <Badge badgeContent={4} color="secondary">
-                <NotificationsIcon />
-                </Badge>
-            </IconButton>
+                <IconButton
+                    edge="start"
+                    color="inherit"
+                    aria-label="open drawer"
+                    onClick={handleDrawerOpen}
+                    className={clsx(classes.menuButton, open && classes.menuButtonHidden)}
+                >
+                    <MenuIcon />
+                </IconButton>
+                <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
+                    Habita
+                </Typography>
+                { user ? (
+                    <div className={classes.profile}>
+                        <IconButton
+                            aria-label="account of current user"
+                            aria-controls="menu-appbar"
+                            aria-haspopup="true"
+                            onClick={(e) => handleMenu(e, "open")}
+                            color="inherit"
+                        >
+                            <Avatar 
+                            color="inherit" 
+                            alt={user.result.name} 
+                            src={user.result.imageUrl}  
+                            >
+                            {/* {user.result.name.charAt(0)} */}
+                            </Avatar>
+                        </IconButton>
+                        <Popover
+                            id={id}
+                            open={popperOpen}
+                            anchorEl={anchorEl}
+                            onClose={(e) => handleMenu(e, "close")}
+                            anchorOrigin={{
+                            vertical: 'bottom',
+                            horizontal: 'center',
+                            }}
+                            transformOrigin={{
+                            vertical: 'top',
+                            horizontal: 'center',
+                            }}
+                        >
+                            <Menu
+                            id="menu-appbar"
+                            anchorEl={anchorEl}
+                            anchorOrigin={{
+                            vertical: 'top',
+                            horizontal: 'right',
+                            }}
+                            keepMounted
+                            transformOrigin={{
+                            vertical: 'top',
+                            horizontal: 'right',
+                            }}
+                            open={popperOpen}
+                            onClose={(e) => handleMenu(e, "close")}
+                        >
+                            <MenuItem onClick={(e) => handleMenu(e, "close")}>Profile</MenuItem>
+                            <MenuItem onClick={(e) => logout(e)}>Logout</MenuItem>
+                        </Menu>
+                            {/* <Typography className={classes.typography}>The content of the Popover.</Typography> */}
+                        </Popover> 
+                    </div>
+                ) : ""}
+              
+            
             </Toolbar>
         </AppBar>
         <Drawer
